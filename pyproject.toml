@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "plenty_taxhub_generator"
+version = "0.0.1"
+description = "Generate the required data sheet for the DutyPay(dutypay.eu) TaxHub platform from Plentymarkets."
+authors = ["Sebastian Fricke <sebastian.fricke.linux@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+typing = "^3.7.4"
+pylint = "^2.6.0"
+requests = "^2.24.0"
+plenty_api = "^0.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.0.2"
+yapf = "^0.30.0"
+mccabe = "^0.6.1"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
