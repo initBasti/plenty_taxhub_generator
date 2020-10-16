@@ -84,6 +84,8 @@ def get_document_data(row: dict) -> dict:
         [dict]          -   containing the number and creation date
     """
     document_data = {'id': '', 'date': ''}
+    if 'documents' not in row.keys():
+        return document_data
     if not row['documents']:
         return document_data
 
