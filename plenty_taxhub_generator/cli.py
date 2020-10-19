@@ -23,6 +23,7 @@ import argparse
 import configparser
 import os
 import sys
+from pkg_resources import get_distribution, DistributionNotFound
 
 import plenty_api
 
@@ -84,6 +85,14 @@ def setup_argparser():
         help='Change the base URL for the API request endpoint',
         dest='url',
     )
+    p.add_argument(
+        '--version',
+        '-v',
+        required=False,
+        help='show the version of this app and some dependencies',
+        dest='version',
+        action='store_true'
+    )
     args = p.parse_args()
     if args.url:
         if not utils.check_url(url=args.url):
@@ -102,6 +111,13 @@ def setup_argparser():
                 )
             )
             sys.exit(1)
+    if args.version:
+        try:
+            __version__ = get_distribution(PROG_NAME).version
+        except DistributionNotFound:
+            __version__ = '(local)'
+        print(f"{PROG_NAME} [{__version__}]\n"
+              f"plenty_api [{plenty_api.__version__}]")
     return args
 
 
@@ -197,7 +213,8 @@ def cli():
         out_path = args.output_path
 
     plenty = plenty_api.PlentyApi(
-        base_url=mapping['url'], data_format='json', use_keyring=True
+        base_url=mapping['url'], data_format='json', use_keyring=True,
+        debug=False
     )
     vat_data = plenty.plenty_api_get_vat_id_mappings()
     mapping = add_vat_data_to_mappings(mapping=mapping, vat_data=vat_data)
