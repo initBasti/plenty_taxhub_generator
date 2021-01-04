@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plenty_taxhub_generator"
-version = "0.0.3"
+version = "0.0.4"
 description = "Generate the required data sheet for the DutyPay(dutypay.eu) TaxHub platform from Plentymarkets."
 authors = ["Sebastian Fricke <sebastian.fricke.linux@gmail.com>"]
 license = "MIT"
@@ -12,6 +12,7 @@ typing = "^3.7.4"
 pylint = "^2.6.0"
 requests = "^2.24.0"
 plenty_api = "^0.2"
+loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0.2"
