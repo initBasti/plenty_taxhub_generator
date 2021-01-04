@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import pandas
+from loguru import logger
 
 import plenty_taxhub_generator.packages.utils as utils
 
@@ -226,7 +227,7 @@ def filter_data(data: list, mapping: dict) -> pandas.DataFrame:
         insert_empty_entries(target=frame_row, num=4)
         qty = get_total_item_quantity(row=entry)
         if not qty:
-            print(f"WARNING: no item quantity for {entry['id']}.")
+            logger.warning(f"No item quantity for {entry['id']}.")
         frame_row.append(qty)
 
         insert_empty_entries(target=frame_row, num=64)
@@ -235,8 +236,8 @@ def filter_data(data: list, mapping: dict) -> pandas.DataFrame:
 
     frame = pandas.DataFrame(frame_data, columns=tax_columns)
     if no_document:
-        print(f'INFO: Missing documents for Order ID: {no_document}')
+        logger.info(f'Missing documents for Order ID: {no_document}')
     if no_delivery:
-        print(f'INFO: Missing delivery date for Order ID: {no_delivery}')
+        logger.info(f'Missing delivery date for Order ID: {no_delivery}')
 
     return frame

@@ -60,7 +60,7 @@ def transform_date(date: str) -> str:
     try:
         parsed_date = dateutil.parser.parse(date)
     except dateutil.parser._parser.ParserError:
-        print(f'ERROR: Invalid date: {date}, cannot transform date format.')
+        logger.error(f"Invalid date: {date}, cannot transform date format.")
         return ''
     if not parsed_date:
         return ''
@@ -90,24 +90,24 @@ def country_id_mapping(config) -> dict:
     mapping = {}
     conf_value = config['Mappings']['country_id']
     if conf_value.find(',') <= 0 and len(conf_value) > 6:
-        print("ERROR: invalid country IDs, incorrect separator use: ','.")
+        logger.error("Invalid country IDs, incorrect separator use: ','.")
         return {}
 
     country_ids = conf_value.split(',')
 
     for country in country_ids:
         if country.find('=') <= 0:
-            print("ERROR: invalid country ID separate key and value with '='.")
+            logger.error("Invalid country ID separate key and value with '='.")
             return {}
         country = country.strip(' ')
         pair = country.split('=')
         if pair[0].upper() not in VALID_COUNTRY_ABBREVIATIONS:
-            print(f'ERROR: invalid country code: {pair[0]}')
+            logger.error(f"Invalid country code: {pair[0]}")
             return {}
         try:
             int(pair[1])  # test if it is a valid number
         except ValueError:
-            print(f'ERROR: invalid country ID value: {pair[1]}')
+            logger.error(f"Invalid country ID value: {pair[1]}")
             return {}
         mapping[pair[0].upper()] = {
             'country_id': str(pair[1]),
@@ -134,13 +134,14 @@ def get_referrer_id_list(config: object) -> list:
         return ['ALL']
 
     if conf_value.find(',') <= 0 and len(conf_value) > 6:
-        print('ERROR: invalid referrer IDs, incorrect separator use: ','.')
+        logger.error("Invalid referrer IDs, incorrect separator use: ",'.')
         return []
     elif conf_value.find(',') <= 0 and len(conf_value) <= 6:
         try:
             float(conf_value)  # test if it is a valid number
         except ValueError:
-            print(f'ERROR: invalid referrer ID: {conf_value} must be a number.')
+            logger.error(f"Invalid referrer ID: {conf_value} must be a "
+                         "number.")
             return []
         return [conf_value]
 
@@ -150,7 +151,8 @@ def get_referrer_id_list(config: object) -> list:
         try:
             float(referrer)
         except ValueError:
-            print(f'ERROR: invalid referrer ID: {conf_value} must be a number.')
+            logger.error(f"Invalid referrer ID: {conf_value} must be a "
+                         "number.")
 
         referrer_list.append(referrer)
 

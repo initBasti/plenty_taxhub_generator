@@ -24,22 +24,28 @@ import configparser
 import os
 import sys
 from pkg_resources import get_distribution, DistributionNotFound
+from loguru import logger
 
 import plenty_api
 
 import plenty_taxhub_generator.packages.taxhub as taxhub
 import plenty_taxhub_generator.packages.utils as utils
 
+
 PROG_NAME = 'plenty_taxhub_generator'
 USER = os.getlogin()
 if sys.platform == 'linux':
-    CONFIG_PATH = os.path.join(
-        '/', 'home', str(f'{USER}'), '.' + PROG_NAME + '_config.ini'
+    BASE_PATH = os.path.join(
+        '/', 'home', str(f'{USER}'), '.config', PROG_NAME
     )
 elif sys.platform == 'win32':
-    CONFIG_PATH = os.path.join(
-        'C:\\', 'Users', str(f'{USER}'), '.' + PROG_NAME + '_config.ini'
+    BASE_PATH = os.path.join(
+        'C:\\', 'Users', str(f'{USER}'), '.config', PROG_NAME
     )
+if not os.path.exists(BASE_PATH):
+    os.mkdir(BASE_PATH)
+
+CONFIG_PATH = os.path.join(BASE_PATH, 'config.ini')
 
 
 def setup_argparser():
@@ -96,20 +102,14 @@ def setup_argparser():
     args = p.parse_args()
     if args.url:
         if not utils.check_url(url=args.url):
-            print(
-                'ERROR: invalid URL [{0}] used for the change URL request.'.format(
-                    args.url
-                )
-            )
+            logger.error(f"Invalid URL [{args.url}] used for the change "
+                         "URL request.")
             sys.exit(1)
 
     if args.output_path:
         if not os.path.exists(args.output_path):
-            print(
-                'ERROR: invalid directory path [{0}] used as output path'.format(
-                    args.output_path
-                )
-            )
+            logger.error(f"Invalid directory path [{args.output_path}] used "
+                         "as output path")
             sys.exit(1)
     if args.version:
         try:
@@ -134,16 +134,17 @@ def gather_data_from_config(config):
     """
 
     if 'General' not in config.sections():
-        print('ERROR: config requires a General section with the base_url.')
+        logger.error("The config requires a 'General' section with the "
+                     "base_url.")
         return None
     if not config.has_option(section='General', option='base_url'):
-        print('ERROR: base_url required for the PlentyMarkets API request.')
+        logger.error("'Base_url' required for the PlentyMarkets API request.")
         return None
     if 'Mappings' not in config.sections():
-        print('ERROR: config requires a Mappings section')
+        logger.error("The config requires a 'Mappings' section")
         return None
     if not config.has_option(section='Mappings', option='country_id'):
-        print('ERROR: Country ids required to map the required abbreviation')
+        logger.error('Country ids required to map the required abbreviation')
         return None
 
     data = {
@@ -173,26 +174,21 @@ def add_vat_data_to_mappings(mapping: dict, vat_data: dict) -> dict:
             mapping['countries'][key]['vat_conf'] = vat_data[country_id]['config']
             mapping['countries'][key]['tax_id'] = vat_data[country_id]['TaxId']
         else:
-            print(f'ERROR: no VAT data found, for {key}: {country_id}')
+            logger.error(f"No VAT data found, for {key}: {country_id}")
 
     return mapping
 
 
 def show_mappings(data: dict) -> None:
-    print(f"PlentyMarkets API base URL: {data['url']}\n-------")
+    logger.info(f"PlentyMarkets API base URL: {data['url']}\n-------")
 
     for country in data['countries'].keys():
-        print(
-            'Country: {0}\tID: {1}'.format(
-                country, data['countries'][country]['country_id']
-            )
-        )
-    print('-------')
+        logger.info(f"Country: {country}\tID: "
+                    f"{data['countries'][country]['country_id']}")
     for referrer in data['referrer']:
-        print(f'Referrer: {referrer}')
-    print('-------')
+        logger.info(f'Referrer: {referrer}')
     for key, value in data['fixed_values'].items():
-        print(f'optional fixed value: {key} = {value}')
+        logger.info(f'optional fixed value: {key} = {value}')
     sys.exit(0)
 
 
@@ -201,6 +197,9 @@ def cli():
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
     mapping = gather_data_from_config(config=config)
+    if not mapping:
+        logger.error(f"Configuration does not exist or not valid.")
+        sys.exit(1)
     args = setup_argparser()
     all_orders = []
 
@@ -221,7 +220,7 @@ def cli():
 
     for country in mapping['countries']:
         for referrer in mapping['referrer']:
-            print(f'Load... country [{country}] referrer [{referrer}]')
+            logger.info(f"Load... country [{country}] referrer [{referrer}]")
             orders = plenty.plenty_api_get_orders_by_date(
                 start=args.start_date,
                 end=args.end_date,
@@ -238,4 +237,4 @@ def cli():
     filtered_data = taxhub.filter_data(data=all_orders, mapping=mapping)
 
     filtered_data.to_csv(out_path, index=False, header=True)
-    print(f'Report written to [{out_path}]')
+    logger.info(f"Report written to [{out_path}]")
