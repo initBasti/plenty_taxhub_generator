@@ -159,6 +159,8 @@ def get_total_item_quantity(row: dict) -> str:
     """
     total = 0
     for item in row['orderItems']:
+        if item['typeId'] not in [1,2]:
+            continue
         total += item['quantity']
 
     return str(total)
